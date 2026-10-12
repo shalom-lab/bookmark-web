@@ -149,13 +149,14 @@ strong {
 
 .brand-mark {
   display: block;
-  width: 46px;
-  height: 46px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   object-fit: contain;
   flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.28);
-  background: var(--bg-elevated);
+  /* Match favicon.svg — no gray frame / elevated plate behind the mark */
+  background: transparent;
+  box-shadow: none;
 }
 
 .brand h1 .dirty-pill {
@@ -693,28 +694,34 @@ strong {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  min-height: 1.5rem;
+  min-height: 1.25rem;
   padding-right: 4.2rem;
+  line-height: 1;
 }
 
 .category-tag,
 .category-pill {
   display: inline-flex;
   align-items: center;
-  padding: 0.28rem 0.75rem;
+  align-self: center;
+  padding: 0.1rem 0.55rem;
   border-radius: var(--radius-pill);
   background: var(--accent-soft);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 650;
   letter-spacing: 0.01em;
+  line-height: 1.25;
+  max-height: 1.25rem;
 }
 
 .rating {
   color: var(--star);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
   opacity: 0.95;
+  line-height: 1;
+  align-self: center;
 }
 
 .card-title {

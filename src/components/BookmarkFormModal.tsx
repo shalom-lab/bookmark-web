@@ -24,6 +24,7 @@ export function BookmarkFormModal({
   const [draft, setDraft] = useState<BookmarkDraft>(emptyDraft())
   const [tagsText, setTagsText] = useState('')
   const [err, setErr] = useState<string | null>(null)
+  const [submitted, setSubmitted] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -36,12 +37,14 @@ export function BookmarkFormModal({
       setTagsText('')
     }
     setErr(null)
+    setSubmitted(false)
   }, [open, initial])
 
   if (!open) return null
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (busy || submitted) return
     const title = draft.title.trim()
     const url = draft.url.trim()
     if (!title) {
@@ -64,6 +67,7 @@ export function BookmarkFormModal({
       .split(/[,，、\s]+/)
       .map((t) => t.trim())
       .filter(Boolean)
+    setSubmitted(true)
     onSubmit({ ...draft, title, url, tags, category: draft.category.trim() || 'Default' }, initial)
   }
 
@@ -148,8 +152,8 @@ export function BookmarkFormModal({
               取消
             </button>
             <div className="spacer" />
-            <button type="submit" className="btn primary" disabled={busy}>
-              {busy ? '保存中…' : '保存到本地'}
+            <button type="submit" className="btn primary" disabled={busy || submitted}>
+              {busy || submitted ? '保存中…' : '保存到本地'}
             </button>
           </footer>
         </form>

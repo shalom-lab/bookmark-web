@@ -36,7 +36,10 @@ export function BookmarkCard({
         <button
           type="button"
           className="card-action-btn"
-          onClick={() => onEdit(bookmark)}
+          onClick={(e) => {
+            e.stopPropagation()
+            onEdit(bookmark)
+          }}
           title="编辑"
           aria-label={`编辑 ${bookmark.title}`}
         >
@@ -45,7 +48,10 @@ export function BookmarkCard({
         <button
           type="button"
           className="card-action-btn danger"
-          onClick={() => onDelete(bookmark)}
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete(bookmark)
+          }}
           title="删除"
           aria-label={`删除 ${bookmark.title}`}
         >
@@ -83,7 +89,10 @@ export function BookmarkCard({
               key={t}
               label={t}
               active={activeTags.includes(t)}
-              onClick={() => onTagClick(t)}
+              onClick={(e) => {
+                e.stopPropagation()
+                onTagClick(t)
+              }}
             />
           ))}
         </div>

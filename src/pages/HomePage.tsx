@@ -15,6 +15,8 @@ import {
 } from '../github/storage'
 import { friendlyGithubError, type GithubSettings } from '../github/types'
 import {
+  bookmarkUrlKey,
+  dedupeBookmarks,
   newBookmarkId,
   type Bookmark,
   type BookmarkDraft,
@@ -71,10 +73,11 @@ export function HomePage({ settings }: Props) {
 
   const applyLocal = useCallback(
     (next: Bookmark[], nextSha: string | null, nextDirty: boolean) => {
-      setBookmarks(next)
+      const clean = dedupeBookmarks(next)
+      setBookmarks(clean)
       setSha(nextSha)
       setDirty(nextDirty)
-      persistLocal(next, nextSha, nextDirty)
+      persistLocal(clean, nextSha, nextDirty)
     },
     [],
   )
@@ -96,13 +99,14 @@ export function HomePage({ settings }: Props) {
         setLoading(true)
         setError(null)
         setInfo('有未推送的本地修改，已保留本地草稿。推送或丢弃后再刷新远程。')
-        setBookmarks(existing.bookmarks)
+        const local = dedupeBookmarks(existing.bookmarks)
+        setBookmarks(local)
         setDirty(true)
         try {
           const snap = await loadBookmarks(settings)
           // Keep local bookmarks/dirty; adopt latest remote sha for next push.
           setSha(snap.sha)
-          persistLocal(existing.bookmarks, snap.sha, true)
+          persistLocal(local, snap.sha, true)
         } catch (e) {
           setSha(existing.baseSha)
           setError(friendlyGithubError(e))
@@ -229,6 +233,7 @@ export function HomePage({ settings }: Props) {
 
   /** Create / update: localStorage only — never push on each edit. */
   const handleSubmit = (draft: BookmarkDraft, current: Bookmark | null) => {
+    const urlKey = bookmarkUrlKey(draft.url)
     let next: Bookmark[]
     if (current) {
       next = bookmarks.map((b) =>
@@ -245,17 +250,35 @@ export function HomePage({ settings }: Props) {
           : b,
       )
     } else {
-      const created: Bookmark = {
-        id: newBookmarkId(),
-        title: draft.title,
-        url: draft.url,
-        category: draft.category,
-        tags: draft.tags,
-        rating: draft.rating,
-        createdAt: new Date().toISOString(),
-        desc: draft.desc || undefined,
+      // Upsert by URL — blind prepend was duplicating cards on repeat add / double-submit.
+      const existing = bookmarks.find((b) => bookmarkUrlKey(b.url) === urlKey)
+      if (existing) {
+        next = bookmarks.map((b) =>
+          b.id === existing.id
+            ? {
+                ...b,
+                title: draft.title,
+                url: draft.url,
+                category: draft.category,
+                tags: draft.tags,
+                rating: draft.rating,
+                desc: draft.desc || undefined,
+              }
+            : b,
+        )
+      } else {
+        const created: Bookmark = {
+          id: newBookmarkId(),
+          title: draft.title,
+          url: draft.url,
+          category: draft.category,
+          tags: draft.tags,
+          rating: draft.rating,
+          createdAt: new Date().toISOString(),
+          desc: draft.desc || undefined,
+        }
+        next = [created, ...bookmarks]
       }
-      next = [created, ...bookmarks]
     }
     applyLocal(next, sha, true)
     setInfo('已保存到本地，点击「推送到远程」同步到 GitHub')
@@ -308,6 +331,7 @@ export function HomePage({ settings }: Props) {
     setFormOpen(true)
   }
 
+  /** Tag capsule / sidebar: filter only — must not mutate bookmarks / draft. */
   const handleTagClick = (tag: string) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
@@ -328,10 +352,10 @@ export function HomePage({ settings }: Props) {
         <div className="brand">
           <img
             className="brand-mark"
-            src={`${import.meta.env.BASE_URL}logo.png`}
+            src={`${import.meta.env.BASE_URL}favicon.svg`}
             alt=""
-            width={46}
-            height={46}
+            width={32}
+            height={32}
           />
           <div>
             <h1>
@@ -441,7 +465,7 @@ export function HomePage({ settings }: Props) {
             <div className="card-grid">
               {filtered.map((b) => (
                 <BookmarkCard
-                  key={b.id}
+                  key={`${b.id}-${b.url}`}
                   bookmark={b}
                   onEdit={openEdit}
                   onDelete={requestDelete}

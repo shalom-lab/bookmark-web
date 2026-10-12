@@ -1,6 +1,8 @@
+import type { MouseEvent } from 'react'
+
 interface Props {
   label: string
-  onClick?: () => void
+  onClick?: (e: MouseEvent) => void
   active?: boolean
 }
 

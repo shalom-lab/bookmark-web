@@ -7,7 +7,7 @@ import {
   type GithubSettings,
   type ParsedRepo,
 } from './types'
-import type { Bookmark } from '../types/bookmark'
+import { dedupeBookmarks, type Bookmark } from '../types/bookmark'
 
 /**
  * Prefer direct browser → api.github.com (GitHub supports CORS).
@@ -95,10 +95,12 @@ function normalizeBookmarks(data: unknown): Bookmark[] {
   if (!Array.isArray(data)) {
     throw new GithubApiError(422, 'all_bookmarks.json 应为 JSON 数组')
   }
-  return data.map((item) => {
+  const base = Date.now()
+  const mapped = data.map((item, index) => {
     const b = item as Partial<Bookmark>
     return {
-      id: typeof b.id === 'number' ? b.id : Date.now(),
+      // Unique fallback per row — plain Date.now() collides across the map.
+      id: typeof b.id === 'number' && Number.isFinite(b.id) ? b.id : base + index,
       title: String(b.title ?? ''),
       url: String(b.url ?? ''),
       category: String(b.category ?? 'Default'),
@@ -110,6 +112,7 @@ function normalizeBookmarks(data: unknown): Bookmark[] {
       enrichedAt: b.enrichedAt != null ? String(b.enrichedAt) : undefined,
     }
   })
+  return dedupeBookmarks(mapped)
 }
 
 export type BookmarksSnapshot = {

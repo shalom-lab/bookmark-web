@@ -1,4 +1,4 @@
-import type { Bookmark } from '../types/bookmark'
+import { dedupeBookmarks, type Bookmark } from '../types/bookmark'
 import { DEFAULT_SETTINGS, type GithubSettings } from './types'
 
 /** Flat, hyphenated BYOK keys — mandatory convention. */
@@ -52,10 +52,11 @@ export type LocalDraft = {
 
 function normalizeDraftBookmarks(data: unknown): Bookmark[] {
   if (!Array.isArray(data)) return []
-  return data.map((item) => {
+  const base = Date.now()
+  const mapped = data.map((item, index) => {
     const b = item as Partial<Bookmark>
     return {
-      id: typeof b.id === 'number' ? b.id : Date.now(),
+      id: typeof b.id === 'number' && Number.isFinite(b.id) ? b.id : base + index,
       title: String(b.title ?? ''),
       url: String(b.url ?? ''),
       category: String(b.category ?? 'Default'),
@@ -67,6 +68,7 @@ function normalizeDraftBookmarks(data: unknown): Bookmark[] {
       enrichedAt: b.enrichedAt != null ? String(b.enrichedAt) : undefined,
     }
   })
+  return dedupeBookmarks(mapped)
 }
 
 /** Read local all_bookmarks overlay; null if missing/invalid. */
