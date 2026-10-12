@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BookmarkCard } from '../components/BookmarkCard'
 import { BookmarkFormModal } from '../components/BookmarkFormModal'
+import { ConfirmModal } from '../components/ConfirmModal'
 import { CategoryTabs } from '../components/CategoryTabs'
 import { SearchBar } from '../components/SearchBar'
 import { TagFilter } from '../components/TagFilter'
@@ -47,6 +48,7 @@ export function HomePage({ settings }: Props) {
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Bookmark | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<Bookmark | null>(null)
 
   const configured = isConfigured(settings)
 
@@ -194,10 +196,16 @@ export function HomePage({ settings }: Props) {
     }
   }
 
-  const handleDelete = async (b: Bookmark) => {
-    if (!confirm(`确定删除「${b.title}」？将写入 GitHub 仓库。`)) return
+  const requestDelete = (b: Bookmark) => {
+    setPendingDelete(b)
+  }
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return
+    const b = pendingDelete
     const next = bookmarks.filter((x) => x.id !== b.id)
-    await persist(next, `bookmark-web: delete ${b.title}`)
+    const ok = await persist(next, `bookmark-web: delete ${b.title}`)
+    if (ok) setPendingDelete(null)
   }
 
   const openCreate = () => {
@@ -303,7 +311,7 @@ export function HomePage({ settings }: Props) {
                   key={b.id}
                   bookmark={b}
                   onEdit={openEdit}
-                  onDelete={(x) => void handleDelete(x)}
+                  onDelete={requestDelete}
                   onTagClick={handleTagClick}
                   activeTags={selectedTags}
                 />
@@ -324,6 +332,24 @@ export function HomePage({ settings }: Props) {
         }}
         onSubmit={(d, cur) => void handleSubmit(d, cur)}
         busy={saving}
+      />
+
+      <ConfirmModal
+        open={pendingDelete !== null}
+        title="删除书签"
+        message={
+          pendingDelete
+            ? `确定删除「${pendingDelete.title}」？将写入 GitHub 仓库。`
+            : ''
+        }
+        confirmLabel="删除"
+        cancelLabel="取消"
+        danger
+        busy={saving}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => {
+          if (!saving) setPendingDelete(null)
+        }}
       />
     </div>
   )

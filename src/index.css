@@ -281,41 +281,41 @@ strong {
   flex: 1;
 }
 
-/* Search — full-width like awesome-prompt */
+/* Search — compact strip */
 .search-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.5rem;
   align-items: center;
-  margin-bottom: 1.1rem;
+  margin-bottom: 0.65rem;
 }
 
 .search-input-wrap {
   position: relative;
-  flex: 1 1 260px;
-  min-width: 200px;
+  flex: 1 1 240px;
+  min-width: 180px;
 }
 
 .search-icon {
   position: absolute;
-  left: 0.95rem;
+  left: 0.7rem;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-faint);
   pointer-events: none;
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   line-height: 1;
 }
 
 .search-input {
   width: 100%;
-  padding: 0.85rem 2.4rem 0.85rem 2.55rem;
-  border-radius: 10px;
+  padding: 0.48rem 2rem 0.48rem 2.05rem;
+  border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--text);
   font: inherit;
-  font-size: 0.95rem;
+  font-size: 0.84rem;
   box-shadow: var(--shadow-sm);
   transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
@@ -330,17 +330,17 @@ strong {
 
 .clear-search {
   position: absolute;
-  right: 0.55rem;
+  right: 0.4rem;
   top: 50%;
   transform: translateY(-50%);
   border: none;
   background: var(--bg-muted);
-  width: 1.55rem;
-  height: 1.55rem;
+  width: 1.25rem;
+  height: 1.25rem;
   border-radius: var(--radius-pill);
   cursor: pointer;
   color: var(--text-muted);
-  font-size: 1rem;
+  font-size: 0.85rem;
   line-height: 1;
   display: grid;
   place-items: center;
@@ -353,22 +353,22 @@ strong {
 
 .result-count {
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 600;
   white-space: nowrap;
-  padding: 0.35rem 0.75rem;
+  padding: 0.22rem 0.55rem;
   background: var(--bg-soft);
   border-radius: var(--radius-pill);
   letter-spacing: -0.01em;
 }
 
-/* Category tabs (awesome-prompt pattern) */
+/* Category tabs — compact pills */
 .category-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
-  margin-bottom: 1.5rem;
-  padding: 0.35rem 0 1rem;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  padding: 0.15rem 0 0.65rem;
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
   scrollbar-width: thin;
@@ -377,15 +377,16 @@ strong {
 .tab-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.45rem 0.95rem;
+  gap: 0.28rem;
+  padding: 0.22rem 0.65rem;
   border-radius: var(--radius-pill);
   border: none;
   background: var(--bg-elevated);
   color: #fff;
   font: inherit;
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   font-weight: 650;
+  line-height: 1.25;
   cursor: pointer;
   white-space: nowrap;
   box-shadow: var(--shadow-sm);
@@ -396,14 +397,14 @@ strong {
   box-shadow: var(--shadow);
 }
 .tab-btn.active {
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: 0 0 0 1.5px var(--bg), 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .tab-btn-all {
   color: var(--text);
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  min-width: 3.5rem;
+  min-width: 2.75rem;
   justify-content: center;
 }
 .tab-btn-all.active {
@@ -414,10 +415,11 @@ strong {
 
 .tab-count {
   background: rgba(255, 255, 255, 0.28);
-  padding: 0.1rem 0.4rem;
+  padding: 0.05rem 0.3rem;
   border-radius: var(--radius-pill);
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   font-weight: 700;
+  line-height: 1.2;
 }
 .tab-btn-all .tab-count {
   background: var(--bg-muted);
@@ -1050,6 +1052,36 @@ strong {
   margin-top: 0.35rem;
   padding-top: 1.1rem;
   border-top: 1px solid var(--border);
+}
+
+
+/* Confirm modal */
+.confirm-modal {
+  width: min(400px, 100%);
+  background: var(--bg-elevated);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  padding: 1.25rem 1.35rem 1.2rem;
+  animation: modal-up 0.22s var(--ease);
+}
+.confirm-modal h2 {
+  margin: 0 0 0.55rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.confirm-modal p {
+  margin: 0 0 1.15rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 1024px) {
