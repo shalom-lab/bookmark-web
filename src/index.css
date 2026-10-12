@@ -148,16 +148,28 @@ strong {
 }
 
 .brand-mark {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 46px;
   height: 46px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 45%, #06b6d4 100%);
-  color: #fff;
-  font-size: 1.3rem;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  object-fit: contain;
   flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.28);
+  background: var(--bg-elevated);
+}
+
+.brand h1 .dirty-pill {
+  margin-left: 0.65rem;
+  vertical-align: middle;
+  position: relative;
+  top: -0.12em;
+}
+
+.btn.github-link {
+  text-decoration: none;
+}
+.btn.github-link:hover {
+  text-decoration: none;
 }
 
 .brand h1 {

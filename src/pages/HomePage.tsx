@@ -268,20 +268,15 @@ export function HomePage({ settings }: Props) {
     setPendingDelete(b)
   }
 
-  /** Delete: confirm → apply locally → push to remote immediately. */
-  const confirmDelete = async () => {
+  /** Delete: confirm → localStorage only — never push on each delete. */
+  const confirmDelete = () => {
     if (!pendingDelete) return
     const b = pendingDelete
     const next = bookmarks.filter((x) => x.id !== b.id)
-    // Keep UI optimistic locally even before push finishes.
-    setBookmarks(next)
-    setDirty(true)
-    persistLocal(next, sha, true)
-    const ok = await pushRemote(next, `bookmark-web: delete ${b.title}`)
-    if (ok) {
-      setPendingDelete(null)
-      setInfo(`已删除并推送「${b.title}」`)
-    }
+    applyLocal(next, sha, true)
+    setPendingDelete(null)
+    setInfo(`已删除「${b.title}」（本地）。点击「推送到远程」同步到 GitHub`)
+    setError(null)
   }
 
   const handlePush = async () => {
@@ -331,17 +326,22 @@ export function HomePage({ settings }: Props) {
     <div className="page home-page">
       <header className="app-header">
         <div className="brand">
-          <span className="brand-mark">◈</span>
+          <img
+            className="brand-mark"
+            src={`${import.meta.env.BASE_URL}logo.png`}
+            alt=""
+            width={46}
+            height={46}
+          />
           <div>
-            <h1>Bookmarks</h1>
-            <p className="subtitle">
-              {configured ? settings.repo : '未配置仓库'} · data/all_bookmarks.json
+            <h1>
+              Bookmarks
               {dirty && (
                 <span className="dirty-pill" title="有未推送的本地修改">
                   未推送
                 </span>
               )}
-            </p>
+            </h1>
           </div>
         </div>
         <div className="header-actions">
@@ -369,6 +369,17 @@ export function HomePage({ settings }: Props) {
           <Link to="/settings" className="btn">
             设置
           </Link>
+          {configured && (
+            <a
+              className="btn github-link"
+              href={`https://github.com/${settings.repo.trim()}`}
+              target="_blank"
+              rel="noreferrer"
+              title={`在 GitHub 打开 ${settings.repo.trim()}`}
+            >
+              GitHub
+            </a>
+          )}
         </div>
       </header>
 
@@ -384,7 +395,7 @@ export function HomePage({ settings }: Props) {
       {dirty && (
         <div className="banner warn">
           本地有未推送的修改（保存在 <code>gh-bookmark-local-draft</code>
-          ）。编辑仅写本地；点击「推送到远程」批量 RMW 同步到 GitHub。删除会确认后立即推送。
+          ）。新建、编辑、删除仅写本地；点击「推送到远程」批量 RMW 同步到 GitHub。
         </div>
       )}
 
@@ -459,17 +470,15 @@ export function HomePage({ settings }: Props) {
         title="删除书签"
         message={
           pendingDelete
-            ? `确定删除「${pendingDelete.title}」？确认后将立即同步到 GitHub。`
+            ? `确定删除「${pendingDelete.title}」？将先保存到本地，点击「推送到远程」后再同步到 GitHub。`
             : ''
         }
-        confirmLabel="删除并推送"
+        confirmLabel="删除"
         cancelLabel="取消"
         danger
-        busy={pushing}
-        onConfirm={() => void confirmDelete()}
-        onCancel={() => {
-          if (!pushing) setPendingDelete(null)
-        }}
+        busy={false}
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
       />
 
       <ConfirmModal
