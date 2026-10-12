@@ -18,7 +18,7 @@ export function SearchBar({
   total,
 }: Props) {
   return (
-    <div className="search-bar">
+    <div className="search-bar" role="search">
       <div className="search-input-wrap">
         <span className="search-icon" aria-hidden>
           ⌕
@@ -30,6 +30,7 @@ export function SearchBar({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           spellCheck={false}
+          aria-label="搜索书签"
         />
         {value && (
           <button
@@ -57,7 +58,7 @@ export function SearchBar({
         ))}
       </select>
 
-      <span className="result-count">
+      <span className="result-count" aria-live="polite">
         {count === total ? `${total} 条` : `${count} / ${total}`}
       </span>
     </div>

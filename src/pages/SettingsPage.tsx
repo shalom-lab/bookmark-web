@@ -99,7 +99,7 @@ export function SettingsPage({ settings, onSaved }: Props) {
     <div className="page settings-page">
       <header className="page-header">
         <Link to="/" className="back-link">
-          ← 书签
+          ← 返回书签
         </Link>
         <h1>设置</h1>
       </header>
@@ -117,6 +117,8 @@ export function SettingsPage({ settings, onSaved }: Props) {
           数据文件默认读取仓库中的 <code>data/all_bookmarks.json</code>
           （典型仓库：<code>shalom-lab/bookmark</code>）。
         </p>
+
+        <hr className="settings-divider" />
 
         <label className="field">
           <span>

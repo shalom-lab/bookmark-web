@@ -25,8 +25,10 @@ export function BookmarkCard({ bookmark, onEdit, onDelete, onTagClick }: Props) 
   return (
     <article className="bookmark-card">
       <div className="card-top">
-        {bookmark.category && (
+        {bookmark.category ? (
           <span className="category-pill">{bookmark.category}</span>
+        ) : (
+          <span />
         )}
         <span className="rating" title={`评分 ${bookmark.rating}`}>
           {stars(bookmark.rating)}
