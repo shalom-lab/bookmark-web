@@ -149,7 +149,7 @@ export function BookmarkFormModal({
             </button>
             <div className="spacer" />
             <button type="submit" className="btn primary" disabled={busy}>
-              {busy ? '保存中…' : '保存到 GitHub'}
+              {busy ? '保存中…' : '保存到本地'}
             </button>
           </footer>
         </form>

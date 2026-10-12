@@ -183,6 +183,36 @@ strong {
   align-items: center;
 }
 
+.dirty-pill {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.55rem;
+  padding: 0.12rem 0.55rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--warn);
+  background: var(--warn-soft);
+  border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+  vertical-align: middle;
+}
+
+.btn.push {
+  border-color: color-mix(in srgb, var(--warn) 45%, var(--border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--warn-soft) 80%, var(--bg-elevated)),
+    var(--bg-elevated)
+  );
+  color: color-mix(in srgb, var(--warn) 85%, var(--text));
+}
+.btn.push:hover:not(:disabled) {
+  border-color: var(--warn);
+  color: var(--warn);
+  box-shadow: var(--shadow);
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;

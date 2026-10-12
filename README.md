@@ -59,9 +59,11 @@ npm run preview
 ## 功能
 
 - **卡片 UI**：分类胶囊、评分星、简介、胶囊标签
-- **多字段搜索**：标题 / URL / 简介(`desc`) / 标签 / 分类；另可按分类下拉筛选
-- **CRUD**：经 GitHub Contents API 对 `data/all_bookmarks.json` 做 read-modify-write（带 `sha`）
-- **Settings 页**：密码 token、单个 owner/repo、保存/清除（确认）、已保存/未设置并掩码末 4 位
+- **多字段搜索**：标题 / URL / 简介(`desc`) / 标签 / 分类；分类 tabs + 标签侧栏筛选
+- **本地优先编辑**：新建/编辑先写入 localStorage 草稿（`gh-bookmark-local-draft`），显示「未推送」与「推送到远程」；**不在每次编辑时推送**
+- **批量推送**：点击「推送到远程」对 `data/all_bookmarks.json` 做一次 Contents API RMW（带 `sha`）
+- **删除**：确认后立即同步到远程
+- **Settings 页**：密码 token、单个 owner/repo、保存/清除（确认）、已保存/未设置并掩码末 4 位；页面居中
 
 数据文件路径（非 BYOK 键，应用内默认）：分支 `main`、路径 `data/all_bookmarks.json`。
 

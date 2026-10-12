@@ -7,7 +7,12 @@ import { CategoryTabs } from '../components/CategoryTabs'
 import { SearchBar } from '../components/SearchBar'
 import { TagFilter } from '../components/TagFilter'
 import { loadBookmarks, saveBookmarks } from '../github/client'
-import { isConfigured } from '../github/storage'
+import {
+  isConfigured,
+  loadDraft,
+  saveDraft,
+  type LocalDraft,
+} from '../github/storage'
 import { friendlyGithubError, type GithubSettings } from '../github/types'
 import {
   newBookmarkId,
@@ -37,40 +42,90 @@ function matchesQuery(b: Bookmark, q: string): boolean {
     .every((term) => hay.includes(term))
 }
 
+function persistLocal(
+  bookmarks: Bookmark[],
+  baseSha: string | null,
+  dirty: boolean,
+): void {
+  const draft: LocalDraft = { bookmarks, baseSha, dirty }
+  saveDraft(draft)
+}
+
 export function HomePage({ settings }: Props) {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
   const [sha, setSha] = useState<string | null>(null)
+  const [dirty, setDirty] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [pushing, setPushing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Bookmark | null>(null)
   const [pendingDelete, setPendingDelete] = useState<Bookmark | null>(null)
+  const [discardOpen, setDiscardOpen] = useState(false)
 
   const configured = isConfigured(settings)
 
-  const refresh = useCallback(async () => {
-    if (!isConfigured(settings)) {
-      setBookmarks([])
-      setSha(null)
+  const applyLocal = useCallback(
+    (next: Bookmark[], nextSha: string | null, nextDirty: boolean) => {
+      setBookmarks(next)
+      setSha(nextSha)
+      setDirty(nextDirty)
+      persistLocal(next, nextSha, nextDirty)
+    },
+    [],
+  )
+
+  const refresh = useCallback(
+    async (opts?: { forceRemote?: boolean }) => {
+      if (!isConfigured(settings)) {
+        setBookmarks([])
+        setSha(null)
+        setDirty(false)
+        setError(null)
+        setInfo(null)
+        return
+      }
+
+      const existing = loadDraft()
+      if (existing?.dirty && !opts?.forceRemote) {
+        // Keep local overlay; still refresh remote sha in background for RMW.
+        setLoading(true)
+        setError(null)
+        setInfo('有未推送的本地修改，已保留本地草稿。推送或丢弃后再刷新远程。')
+        setBookmarks(existing.bookmarks)
+        setDirty(true)
+        try {
+          const snap = await loadBookmarks(settings)
+          // Keep local bookmarks/dirty; adopt latest remote sha for next push.
+          setSha(snap.sha)
+          persistLocal(existing.bookmarks, snap.sha, true)
+        } catch (e) {
+          setSha(existing.baseSha)
+          setError(friendlyGithubError(e))
+        } finally {
+          setLoading(false)
+        }
+        return
+      }
+
+      setLoading(true)
       setError(null)
-      return
-    }
-    setLoading(true)
-    setError(null)
-    try {
-      const snap = await loadBookmarks(settings)
-      setBookmarks(snap.bookmarks)
-      setSha(snap.sha)
-    } catch (e) {
-      setError(friendlyGithubError(e))
-    } finally {
-      setLoading(false)
-    }
-  }, [settings])
+      setInfo(null)
+      try {
+        const snap = await loadBookmarks(settings)
+        applyLocal(snap.bookmarks, snap.sha, false)
+      } catch (e) {
+        setError(friendlyGithubError(e))
+      } finally {
+        setLoading(false)
+      }
+    },
+    [settings, applyLocal],
+  )
 
   useEffect(() => {
     void refresh()
@@ -125,16 +180,30 @@ export function HomePage({ settings }: Props) {
     })
   }, [bookmarks, query, category, selectedTags])
 
-  const persist = async (
+  /** RMW push current local bookmark list to GitHub. */
+  const pushRemote = async (
     next: Bookmark[],
     message: string,
+    opts?: { clearDirtyOnSuccess?: boolean },
   ): Promise<boolean> => {
-    setSaving(true)
+    setPushing(true)
     setError(null)
     try {
-      const result = await saveBookmarks(settings, next, sha, message)
-      setBookmarks(next)
-      setSha(result.sha)
+      let currentSha = sha
+      // Re-read sha if missing to avoid create-vs-update races.
+      if (currentSha == null) {
+        try {
+          const snap = await loadBookmarks(settings)
+          currentSha = snap.sha
+          setSha(snap.sha)
+        } catch {
+          // keep null — first create
+        }
+      }
+      const result = await saveBookmarks(settings, next, currentSha, message)
+      const clearDirty = opts?.clearDirtyOnSuccess !== false
+      applyLocal(next, result.sha, clearDirty ? false : dirty)
+      setInfo(clearDirty ? '已推送到远程' : null)
       return true
     } catch (e) {
       setError(friendlyGithubError(e))
@@ -147,19 +216,20 @@ export function HomePage({ settings }: Props) {
         try {
           const snap = await loadBookmarks(settings)
           setSha(snap.sha)
+          persistLocal(next, snap.sha, true)
         } catch {
           // ignore
         }
       }
       return false
     } finally {
-      setSaving(false)
+      setPushing(false)
     }
   }
 
-  const handleSubmit = async (draft: BookmarkDraft, current: Bookmark | null) => {
+  /** Create / update: localStorage only — never push on each edit. */
+  const handleSubmit = (draft: BookmarkDraft, current: Bookmark | null) => {
     let next: Bookmark[]
-    let message: string
     if (current) {
       next = bookmarks.map((b) =>
         b.id === current.id
@@ -174,7 +244,6 @@ export function HomePage({ settings }: Props) {
             }
           : b,
       )
-      message = `bookmark-web: update ${draft.title}`
     } else {
       const created: Bookmark = {
         id: newBookmarkId(),
@@ -187,25 +256,47 @@ export function HomePage({ settings }: Props) {
         desc: draft.desc || undefined,
       }
       next = [created, ...bookmarks]
-      message = `bookmark-web: add ${draft.title}`
     }
-    const ok = await persist(next, message)
-    if (ok) {
-      setFormOpen(false)
-      setEditing(null)
-    }
+    applyLocal(next, sha, true)
+    setInfo('已保存到本地，点击「推送到远程」同步到 GitHub')
+    setError(null)
+    setFormOpen(false)
+    setEditing(null)
   }
 
   const requestDelete = (b: Bookmark) => {
     setPendingDelete(b)
   }
 
+  /** Delete: confirm → apply locally → push to remote immediately. */
   const confirmDelete = async () => {
     if (!pendingDelete) return
     const b = pendingDelete
     const next = bookmarks.filter((x) => x.id !== b.id)
-    const ok = await persist(next, `bookmark-web: delete ${b.title}`)
-    if (ok) setPendingDelete(null)
+    // Keep UI optimistic locally even before push finishes.
+    setBookmarks(next)
+    setDirty(true)
+    persistLocal(next, sha, true)
+    const ok = await pushRemote(next, `bookmark-web: delete ${b.title}`)
+    if (ok) {
+      setPendingDelete(null)
+      setInfo(`已删除并推送「${b.title}」`)
+    }
+  }
+
+  const handlePush = async () => {
+    if (!dirty) {
+      setInfo('没有未推送的本地修改')
+      return
+    }
+    const ok = await pushRemote(bookmarks, 'bookmark-web: sync local draft')
+    if (ok) setInfo('本地修改已全部推送到远程')
+  }
+
+  const confirmDiscard = async () => {
+    setDiscardOpen(false)
+    await refresh({ forceRemote: true })
+    setInfo('已丢弃本地草稿并重新加载远程')
   }
 
   const openCreate = () => {
@@ -228,6 +319,14 @@ export function HomePage({ settings }: Props) {
     )
   }
 
+  const handleRefreshClick = () => {
+    if (dirty) {
+      setDiscardOpen(true)
+      return
+    }
+    void refresh({ forceRemote: true })
+  }
+
   return (
     <div className="page home-page">
       <header className="app-header">
@@ -237,6 +336,11 @@ export function HomePage({ settings }: Props) {
             <h1>Bookmarks</h1>
             <p className="subtitle">
               {configured ? settings.repo : '未配置仓库'} · data/all_bookmarks.json
+              {dirty && (
+                <span className="dirty-pill" title="有未推送的本地修改">
+                  未推送
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -244,11 +348,21 @@ export function HomePage({ settings }: Props) {
           <button
             type="button"
             className="btn"
-            onClick={() => void refresh()}
-            disabled={!configured || loading}
+            onClick={handleRefreshClick}
+            disabled={!configured || loading || pushing}
           >
             {loading ? '加载中…' : '刷新'}
           </button>
+          {dirty && (
+            <button
+              type="button"
+              className="btn push"
+              onClick={() => void handlePush()}
+              disabled={!configured || pushing || loading}
+            >
+              {pushing ? '推送中…' : '推送到远程'}
+            </button>
+          )}
           <button type="button" className="btn primary" onClick={openCreate}>
             + 新建
           </button>
@@ -267,6 +381,14 @@ export function HomePage({ settings }: Props) {
         </div>
       )}
 
+      {dirty && (
+        <div className="banner warn">
+          本地有未推送的修改（保存在 <code>gh-bookmark-local-draft</code>
+          ）。编辑仅写本地；点击「推送到远程」批量 RMW 同步到 GitHub。删除会确认后立即推送。
+        </div>
+      )}
+
+      {info && !error && <div className="banner success">{info}</div>}
       {error && <div className="banner error">{error}</div>}
 
       <SearchBar
@@ -325,13 +447,11 @@ export function HomePage({ settings }: Props) {
         open={formOpen}
         initial={editing}
         onClose={() => {
-          if (!saving) {
-            setFormOpen(false)
-            setEditing(null)
-          }
+          setFormOpen(false)
+          setEditing(null)
         }}
-        onSubmit={(d, cur) => void handleSubmit(d, cur)}
-        busy={saving}
+        onSubmit={handleSubmit}
+        busy={false}
       />
 
       <ConfirmModal
@@ -339,16 +459,30 @@ export function HomePage({ settings }: Props) {
         title="删除书签"
         message={
           pendingDelete
-            ? `确定删除「${pendingDelete.title}」？将写入 GitHub 仓库。`
+            ? `确定删除「${pendingDelete.title}」？确认后将立即同步到 GitHub。`
             : ''
         }
-        confirmLabel="删除"
+        confirmLabel="删除并推送"
         cancelLabel="取消"
         danger
-        busy={saving}
+        busy={pushing}
         onConfirm={() => void confirmDelete()}
         onCancel={() => {
-          if (!saving) setPendingDelete(null)
+          if (!pushing) setPendingDelete(null)
+        }}
+      />
+
+      <ConfirmModal
+        open={discardOpen}
+        title="丢弃本地修改？"
+        message="有未推送的本地草稿。刷新将丢弃本地修改并重新加载远程数据。"
+        confirmLabel="丢弃并刷新"
+        cancelLabel="取消"
+        danger
+        busy={loading}
+        onConfirm={() => void confirmDiscard()}
+        onCancel={() => {
+          if (!loading) setDiscardOpen(false)
         }}
       />
     </div>

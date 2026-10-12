@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { testConnection } from '../github/client'
 import {
+  clearDraft,
   clearSettings,
   isConfigured,
   KEY_REPO,
@@ -65,6 +66,7 @@ export function SettingsPage({ settings, onSaved }: Props) {
   const handleClear = () => {
     if (!confirm('确定清除本地 PAT 与仓库设置？')) return
     clearSettings()
+    clearDraft()
     const empty = { ...DEFAULT_SETTINGS }
     setSaved(empty)
     setTokenInput('')
