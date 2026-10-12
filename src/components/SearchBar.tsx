@@ -1,0 +1,65 @@
+interface Props {
+  value: string
+  onChange: (v: string) => void
+  category: string
+  categories: string[]
+  onCategoryChange: (c: string) => void
+  count: number
+  total: number
+}
+
+export function SearchBar({
+  value,
+  onChange,
+  category,
+  categories,
+  onCategoryChange,
+  count,
+  total,
+}: Props) {
+  return (
+    <div className="search-bar">
+      <div className="search-input-wrap">
+        <span className="search-icon" aria-hidden>
+          ⌕
+        </span>
+        <input
+          className="search-input"
+          type="search"
+          placeholder="搜索标题 / URL / 简介 / 标签 / 分类…"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          spellCheck={false}
+        />
+        {value && (
+          <button
+            type="button"
+            className="clear-search"
+            onClick={() => onChange('')}
+            aria-label="清除搜索"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
+      <select
+        className="category-select"
+        value={category}
+        onChange={(e) => onCategoryChange(e.target.value)}
+        aria-label="按分类筛选"
+      >
+        <option value="">全部分类</option>
+        {categories.map((c) => (
+          <option key={c} value={c}>
+            {c}
+          </option>
+        ))}
+      </select>
+
+      <span className="result-count">
+        {count === total ? `${total} 条` : `${count} / ${total}`}
+      </span>
+    </div>
+  )
+}
