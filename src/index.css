@@ -972,6 +972,12 @@ strong {
 }
 
 /* Settings page */
+.settings-page {
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+}
+
 .page-header {
   display: flex;
   flex-direction: column;
@@ -1010,7 +1016,7 @@ strong {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 1.5rem 1.55rem 1.65rem;
-  max-width: 640px;
+  width: 100%;
   transition: box-shadow 0.2s var(--ease);
 }
 .settings-card:hover {
@@ -1057,31 +1063,58 @@ strong {
 
 /* Confirm modal */
 .confirm-modal {
-  width: min(400px, 100%);
+  width: min(420px, 100%);
   background: var(--bg-elevated);
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
-  padding: 1.25rem 1.35rem 1.2rem;
+  padding: 1.55rem 1.5rem 1.4rem;
   animation: modal-up 0.22s var(--ease);
+  text-align: center;
+}
+.confirm-modal--danger {
+  border-color: color-mix(in srgb, var(--danger) 28%, var(--border));
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 1px color-mix(in srgb, var(--danger) 8%, transparent);
+}
+.confirm-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-soft) 65%, transparent);
+}
+.confirm-icon--danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger-soft) 70%, transparent);
 }
 .confirm-modal h2 {
-  margin: 0 0 0.55rem;
-  font-size: 1.1rem;
+  margin: 0 0 0.45rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 .confirm-modal p {
-  margin: 0 0 1.15rem;
+  margin: 0 0 1.35rem;
   color: var(--text-muted);
   font-size: 0.9rem;
   line-height: 1.55;
 }
 .confirm-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
+  justify-content: stretch;
+  gap: 0.6rem;
   flex-wrap: wrap;
+}
+.confirm-actions .btn {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 @media (max-width: 1024px) {

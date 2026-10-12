@@ -1,6 +1,6 @@
 # bookmark-web
 
-Vite + React + TypeScript 书签浏览与 CRUD 前端。从 GitHub Contents API 读取并更新 `data/all_bookmarks.json`（典型数据仓：`shalom-lab/bookmark`）。
+Vite + React + TypeScript 书签浏览与 CRUD 前端。从 GitHub Contents API 读取并更新 `data/all_bookmarks.json`（仓库格式：`owner/repo`）。
 
 密钥只放在浏览器 `localStorage`，不会写入代码、不会提交。
 
@@ -33,7 +33,7 @@ npm run preview
 | Key | Value |
 | --- | --- |
 | `gh-bookmark-token` | GitHub PAT（BYOK） |
-| `gh-bookmark-repo` | 单个字符串 `owner/name`，例如 `shalom-lab/bookmark`（不要拆成两个 key） |
+| `gh-bookmark-repo` | 单个字符串 `owner/repo`（不要拆成两个 key） |
 
 **可 Settings 填写，也可事先写入 localStorage；启动会自动读。**
 

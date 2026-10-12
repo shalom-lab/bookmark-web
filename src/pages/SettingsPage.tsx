@@ -115,7 +115,7 @@ export function SettingsPage({ settings, onSaved }: Props) {
         </p>
         <p className="hint muted">
           数据文件默认读取仓库中的 <code>data/all_bookmarks.json</code>
-          （典型仓库：<code>shalom-lab/bookmark</code>）。
+          （请填写 <code>owner/repo</code>）。
         </p>
 
         <hr className="settings-divider" />
@@ -143,7 +143,7 @@ export function SettingsPage({ settings, onSaved }: Props) {
             仓库 <span className="status-pill">{repoStatus}</span>
           </span>
           <input
-            placeholder="owner/repo（如 shalom-lab/bookmark）"
+            placeholder="owner/repo"
             spellCheck={false}
             value={repoInput}
             onChange={(e) => setRepoInput(e.target.value.trim())}
