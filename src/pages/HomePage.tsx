@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BookmarkCard } from '../components/BookmarkCard'
 import { BookmarkFormModal } from '../components/BookmarkFormModal'
+import { CategoryTabs } from '../components/CategoryTabs'
 import { SearchBar } from '../components/SearchBar'
+import { TagFilter } from '../components/TagFilter'
 import { loadBookmarks, saveBookmarks } from '../github/client'
 import { isConfigured } from '../github/storage'
 import { friendlyGithubError, type GithubSettings } from '../github/types'
@@ -42,6 +44,7 @@ export function HomePage({ settings }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Bookmark | null>(null)
 
@@ -79,12 +82,46 @@ export function HomePage({ settings }: Props) {
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'zh'))
   }, [bookmarks])
 
+  const categoryCounts = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const b of bookmarks) {
+      if (b.category) map[b.category] = (map[b.category] ?? 0) + 1
+    }
+    return map
+  }, [bookmarks])
+
+  const allTags = useMemo(() => {
+    const set = new Set<string>()
+    for (const b of bookmarks) {
+      for (const t of b.tags ?? []) {
+        if (t) set.add(t)
+      }
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'zh'))
+  }, [bookmarks])
+
+  const tagCounts = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const b of bookmarks) {
+      for (const t of b.tags ?? []) {
+        if (t) map[t] = (map[t] ?? 0) + 1
+      }
+    }
+    return map
+  }, [bookmarks])
+
   const filtered = useMemo(() => {
     return bookmarks.filter((b) => {
       if (category && b.category !== category) return false
+      if (
+        selectedTags.length > 0 &&
+        !selectedTags.some((t) => (b.tags ?? []).includes(t))
+      ) {
+        return false
+      }
       return matchesQuery(b, query)
     })
-  }, [bookmarks, query, category])
+  }, [bookmarks, query, category, selectedTags])
 
   const persist = async (
     next: Bookmark[],
@@ -99,7 +136,6 @@ export function HomePage({ settings }: Props) {
       return true
     } catch (e) {
       setError(friendlyGithubError(e))
-      // Re-fetch sha on conflict so next save can succeed
       if (
         e &&
         typeof e === 'object' &&
@@ -178,6 +214,12 @@ export function HomePage({ settings }: Props) {
     setFormOpen(true)
   }
 
+  const handleTagClick = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    )
+  }
+
   return (
     <div className="page home-page">
       <header className="app-header">
@@ -222,36 +264,54 @@ export function HomePage({ settings }: Props) {
       <SearchBar
         value={query}
         onChange={setQuery}
-        category={category}
-        categories={categories}
-        onCategoryChange={setCategory}
         count={filtered.length}
         total={bookmarks.length}
       />
 
-      {loading && bookmarks.length === 0 ? (
-        <div className="empty-state">正在从 GitHub 加载…</div>
-      ) : filtered.length === 0 ? (
-        <div className="empty-state">
-          {bookmarks.length === 0
-            ? configured
-              ? '暂无书签，点击「新建」添加第一条。'
-              : '配置仓库后即可加载书签。'
-            : '没有匹配的书签，试试调整搜索或分类。'}
+      <CategoryTabs
+        categories={categories}
+        counts={categoryCounts}
+        selected={category}
+        onSelect={setCategory}
+      />
+
+      <div className="main-content">
+        {allTags.length > 0 && (
+          <TagFilter
+            tags={allTags}
+            counts={tagCounts}
+            selected={selectedTags}
+            onChange={setSelectedTags}
+          />
+        )}
+
+        <div className="prompt-list">
+          {loading && bookmarks.length === 0 ? (
+            <div className="empty-state">正在从 GitHub 加载…</div>
+          ) : filtered.length === 0 ? (
+            <div className="empty-state">
+              {bookmarks.length === 0
+                ? configured
+                  ? '暂无书签，点击「新建」添加第一条。'
+                  : '配置仓库后即可加载书签。'
+                : '没有匹配的书签，试试调整搜索、分类或标签。'}
+            </div>
+          ) : (
+            <div className="card-grid">
+              {filtered.map((b) => (
+                <BookmarkCard
+                  key={b.id}
+                  bookmark={b}
+                  onEdit={openEdit}
+                  onDelete={(x) => void handleDelete(x)}
+                  onTagClick={handleTagClick}
+                  activeTags={selectedTags}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="card-grid">
-          {filtered.map((b) => (
-            <BookmarkCard
-              key={b.id}
-              bookmark={b}
-              onEdit={openEdit}
-              onDelete={(x) => void handleDelete(x)}
-              onTagClick={(tag) => setQuery(tag)}
-            />
-          ))}
-        </div>
-      )}
+      </div>
 
       <BookmarkFormModal
         open={formOpen}
