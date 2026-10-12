@@ -24,9 +24,9 @@
   --shadow: 0 1px 2px rgba(21, 24, 42, 0.04), 0 8px 24px rgba(21, 24, 42, 0.06);
   --shadow-lg: 0 4px 12px rgba(21, 24, 42, 0.06), 0 20px 48px rgba(21, 24, 42, 0.1);
   --shadow-hover: 0 8px 16px rgba(79, 70, 229, 0.08), 0 20px 40px rgba(21, 24, 42, 0.1);
-  --radius: 18px;
-  --radius-md: 14px;
-  --radius-sm: 10px;
+  --radius: 10px;
+  --radius-md: 8px;
+  --radius-sm: 6px;
   --radius-pill: 999px;
   --font: 'Inter', 'Segoe UI', system-ui, -apple-system, 'PingFang SC',
     'Noto Sans SC', sans-serif;
@@ -115,7 +115,7 @@ code {
   font-size: 0.86em;
   background: var(--bg-soft);
   padding: 0.12em 0.4em;
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
 
@@ -152,7 +152,7 @@ strong {
   place-items: center;
   width: 46px;
   height: 46px;
-  border-radius: 15px;
+  border-radius: 10px;
   background: linear-gradient(135deg, #4f46e5 0%, #6366f1 45%, #06b6d4 100%);
   color: #fff;
   font-size: 1.3rem;
@@ -269,7 +269,7 @@ strong {
   cursor: pointer;
   color: var(--text-muted);
   padding: 0.3rem 0.55rem;
-  border-radius: 10px;
+  border-radius: 6px;
   transition: background 0.15s, color 0.15s;
 }
 .icon-btn:hover {
@@ -592,7 +592,7 @@ strong {
   max-height: min(90vh, 800px);
   overflow: auto;
   background: var(--bg-elevated);
-  border-radius: 20px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
   padding: 1.25rem 1.35rem 1.35rem;

@@ -37,7 +37,8 @@ async function githubFetch(
   headers.set('Accept', 'application/vnd.github+json')
   headers.set('Authorization', `Bearer ${settings.token.trim()}`)
   headers.set('X-GitHub-Api-Version', '2022-11-28')
-  headers.set('Cache-Control', 'no-cache')
+  // Do not set Cache-Control: it is not CORS-safelisted and api.github.com
+  // preflight rejects it. Cache bust via query _=timestamp + cache:'no-store'.
   if (init.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
