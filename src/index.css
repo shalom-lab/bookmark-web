@@ -198,8 +198,22 @@ strong {
 .header-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
+  gap: 0.4rem;
   align-items: center;
+}
+.header-actions .btn {
+  padding: 0.28rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
+  box-shadow: none;
+}
+.header-actions .btn.primary {
+  box-shadow: none;
+}
+.header-actions .btn:hover {
+  box-shadow: none;
 }
 
 .dirty-pill {
