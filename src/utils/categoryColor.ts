@@ -49,19 +49,22 @@ export function categoryClass(category: string): string {
   const cls = `category-${h}`
   if (typeof document !== 'undefined') {
     const attr = `data-category="${category}"`
-    if (!document.querySelector(`style[${attr}]`)) {
+    if (!document.querySelector(`style[data-category-style="v2"][${attr}]`)) {
       const color = COLORS[h % COLORS.length]
+      const deep = adjustColor(color, -20)
       const light = mixWhite(color, 0.72)
       const lightEnd = mixWhite(color, 0.58)
       const style = document.createElement('style')
+      // v2: bust previously injected pastel-only rules
+      style.setAttribute('data-category-style', 'v2')
       style.setAttribute('data-category', category)
-      // Card badges stay saturated; top tabs idle = pastel, .active = saturated (current hit color)
+      // Card badges saturated; tabs idle=pastel; tag/search hit + active = deep
       style.textContent = [
-        `.${cls}{background:linear-gradient(135deg,${color},${adjustColor(color, -20)});}`,
+        `.${cls}{background:linear-gradient(135deg,${color},${deep});}`,
         `.tab-btn.${cls}{background:linear-gradient(135deg,${light},${lightEnd});color:#334155;}`,
         `.tab-btn.${cls} .tab-count{background:rgba(15,23,42,0.1);color:#475569;}`,
-        `.tab-btn.${cls}.active{background:linear-gradient(135deg,${color},${adjustColor(color, -20)});color:#fff;}`,
-        `.tab-btn.${cls}.active .tab-count{background:rgba(255,255,255,0.28);color:#fff;}`,
+        `.tab-btn.${cls}.hit,.tab-btn.${cls}.active{background:linear-gradient(135deg,${color},${deep});color:#fff;}`,
+        `.tab-btn.${cls}.hit .tab-count,.tab-btn.${cls}.active .tab-count{background:rgba(255,255,255,0.28);color:#fff;}`,
       ].join('')
       document.head.appendChild(style)
     }

@@ -184,6 +184,17 @@ export function HomePage({ settings }: Props) {
     })
   }, [bookmarks, query, category, selectedTags])
 
+  /** Categories appearing in current filtered results when tag/search filter is on. */
+  const hitCategories = useMemo(() => {
+    const filtering = selectedTags.length > 0 || query.trim().length > 0
+    if (!filtering) return new Set<string>()
+    const set = new Set<string>()
+    for (const b of filtered) {
+      if (b.category) set.add(b.category)
+    }
+    return set
+  }, [filtered, selectedTags, query])
+
   /** RMW push current local bookmark list to GitHub. */
   const pushRemote = async (
     next: Bookmark[],
@@ -437,6 +448,7 @@ export function HomePage({ settings }: Props) {
         categories={categories}
         counts={categoryCounts}
         selected={category}
+        hitCategories={hitCategories}
         onSelect={setCategory}
       />
 
