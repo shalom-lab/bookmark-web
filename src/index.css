@@ -411,9 +411,11 @@ strong {
   flex-wrap: wrap;
   gap: 0.35rem;
   margin-bottom: 1rem;
-  padding: 0.15rem 0 0.65rem;
+  /* Extra vertical padding so .active ring (3px) is not clipped by overflow-x */
+  padding: 0.4rem 0.1rem 0.75rem;
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
+  overflow-y: visible;
   scrollbar-width: thin;
 }
 
@@ -425,7 +427,7 @@ strong {
   border-radius: var(--radius-pill);
   border: none;
   background: var(--bg-elevated);
-  color: #fff;
+  color: #334155;
   font: inherit;
   font-size: 0.72rem;
   font-weight: 650;
@@ -433,7 +435,7 @@ strong {
   cursor: pointer;
   white-space: nowrap;
   box-shadow: var(--shadow-sm);
-  transition: opacity 0.15s var(--ease), box-shadow 0.15s var(--ease), transform 0.12s var(--ease);
+  transition: opacity 0.15s var(--ease), box-shadow 0.15s var(--ease), transform 0.12s var(--ease), background 0.15s var(--ease), color 0.15s var(--ease);
 }
 .tab-btn:hover {
   opacity: 0.88;
@@ -475,6 +477,14 @@ strong {
 
 .category-default {
   background: linear-gradient(135deg, #64748b, #94a3b8);
+}
+.tab-btn.category-default {
+  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+  color: #334155;
+}
+.tab-btn.category-default.active {
+  background: linear-gradient(135deg, #64748b, #94a3b8);
+  color: #fff;
 }
 
 /* Main: sidebar filters + card grid */
