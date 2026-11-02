@@ -11,7 +11,7 @@ const PREVIEW = 20
 
 export function TagFilter({ tags, counts, selected, onChange }: Props) {
   const [filter, setFilter] = useState('')
-  const [showAll, setShowAll] = useState(false)
+  const [showAll, setShowAll] = useState(true)
 
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase()
@@ -55,7 +55,6 @@ export function TagFilter({ tags, counts, selected, onChange }: Props) {
             value={filter}
             onChange={(e) => {
               setFilter(e.target.value)
-              setShowAll(false)
             }}
             spellCheck={false}
             aria-label="搜索标签"
@@ -82,13 +81,13 @@ export function TagFilter({ tags, counts, selected, onChange }: Props) {
             })
           )}
         </div>
-        {!showAll && totalFiltered > PREVIEW && (
+        {totalFiltered > PREVIEW && (
           <button
             type="button"
             className="show-more-btn"
-            onClick={() => setShowAll(true)}
+            onClick={() => setShowAll((v) => !v)}
           >
-            显示更多 ({totalFiltered - PREVIEW}+)
+            {showAll ? '收起' : `显示更多 (${totalFiltered - PREVIEW}+)`}
           </button>
         )}
       </div>
