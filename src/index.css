@@ -1146,6 +1146,21 @@ strong {
   padding-top: 1.1rem;
   border-top: 1px solid var(--border);
 }
+.settings-actions .btn {
+  border-radius: 6px;
+}
+.settings-actions .back-link.settings-back {
+  margin-left: 0;
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.settings-actions .back-link.settings-back:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
 
 
 /* Confirm modal */

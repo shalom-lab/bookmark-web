@@ -100,9 +100,6 @@ export function SettingsPage({ settings, onSaved }: Props) {
   return (
     <div className="page settings-page">
       <header className="page-header">
-        <Link to="/" className="back-link">
-          ← 返回书签
-        </Link>
         <h1>设置</h1>
       </header>
 
@@ -159,6 +156,9 @@ export function SettingsPage({ settings, onSaved }: Props) {
           <button type="button" className="btn danger" onClick={handleClear}>
             清除
           </button>
+          <Link to="/" className="back-link settings-back">
+            ← 返回书签
+          </Link>
           <div className="spacer" />
           <button
             type="button"
